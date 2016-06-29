@@ -9,12 +9,12 @@ before_all do
 end
 
 def pushToHockey(appName, token)
-	puts 'uploading: ./build/#{appName}.ipa**************'
-	# hockey(
-	# 	api_token: token,
-	# 	ipa: './build/#{appName}.ipa',
-	# 	notes: "Changelog"
-	# 	)
+
+	hockey(
+		api_token: token,
+		ipa: "./build/#{appName}.ipa",
+		notes: "Changelog"
+		)
 end
 
 lane :buildQA do
