@@ -1,5 +1,3 @@
-#UPDATE TEST!!!
-
 fastlane documentation
 ================
 # Installation
@@ -7,24 +5,19 @@ fastlane documentation
 sudo gem install fastlane
 ```
 # Available Actions
-### experiment
+### buildQA
 ```
-fastlane experiment
-```
-
-### test
-```
-fastlane test
+fastlane buildQA
 ```
 
-### inhouse
+### Nightly
 ```
-fastlane inhouse
+fastlane Nightly
 ```
 
-### demo
+### buildProd
 ```
-fastlane demo
+fastlane buildProd
 ```
 
 

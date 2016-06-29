@@ -1,76 +1,64 @@
-# Update these environment settings for your specific project
-def settings
-	{
-		:slack_channel => 'exelon-dev',
-		:xcode_project => 'Exelon-Dashboard.xcodeproj',
-		:github_repo => 'chaione/exelon-dashboard'
-	}	
-end
-	
-def suppress_slack
-	if is_ci?
-		return false
-	else
-		return true
-	end
-end
+require "../Configuration/AppConfiguration"
 
 before_all do
-	bundle_install
-	carthage(command: 'build', platform: 'iOS')
+	#bundle_install
+	#carthage(command: 'build', platform: 'iOS')
 	build_number = number_of_commits
 	increment_build_number(build_number: build_number)
 	commit_version_bump(message: "Version Bump", xcodeproj: settings[:xcode_project])
 end
 
-lane :experiment do
-	slack(slack_url: ENV['slack_url'], channel: settings[:slack_channel], message:"Testing better fastlane variables. Nothing to see here.")
+def pushToHockey(appName, token)
+	puts 'uploading: ./build/#{appName}.ipa**************'
+	# hockey(
+	# 	api_token: token,
+	# 	ipa: './build/#{appName}.ipa',
+	# 	notes: "Changelog"
+	# 	)
 end
 
-lane :test do
-	scan(scheme: "ChaiOne",
-		output_directory: "report_output", 
-		device: "iPad Air 2",
-		slack_url: ENV['slack_url'], 
-		slack_channel: settings[:slack_channel], 
-		skip_slack: suppress_slack,
-		slack_only_on_failure: true
+lane :buildQA do
+	gym(
+		configuration: "QA-ChaiOne",
+		scheme: "ChaiOne",
+		silent: true,
+		clean: true,
+		use_legacy_build_api: true,
+		output_directory: "./build/", # Destination directory. Defaults to current directory.
+		output_name: "#{settings[:project_name]}.ipa"	# specify the name of the .ipa file to generate (including file extension)
 		)
-	xcov(scheme: "ChaiOne", output_directory: "report_output")
+
+	pushToHockey(settings[:project_name], settings[:hockey_QA_Token])
 end
 
-lane :inhouse do
-	ensure_git_branch
-	badge(shield: "#{get_version_number}-#{get_build_number}-0074A0", shield_no_resize: true)
-	gym(scheme: "ChaiOne", clean: true, export_method: "enterprise")
-	s3(access_key: ENV['AWSkey'], secret_access_key: ENV['AWSsecret'], bucket: 'chaione-app-store', path: '_inbox')
-	set_github_release(repository_name: settings[:github_repo], 
-		api_token:ENV['github_token'], 
-		name: "Build ##{get_build_number}", 
-		description: File.read("../RELEASE_NOTES.md"),
-		tag_name: "b#{get_build_number}", 
-		commitish: 'master',
-		is_prerelease: true)
-	if !suppress_slack
-		slack(slack_url: ENV['slack_url'], channel: settings[:slack_channel])
-	end
+lane :Nightly do
+	bundle_install
+	carthage(command: 'build', platform: 'all')
+
+	gym(
+		configuration: "QA-ChaiOne",
+		scheme: "ChaiOne",
+		silent: true,
+		clean: true,
+		use_legacy_build_api: true,
+		output_directory: "./build/", # Destination directory. Defaults to current directory.
+		output_name: "#{settings[:project_name]}.ipa"	# specify the name of the .ipa file to generate (including file extension)
+		)
+
+	pushToHockey(settings[:project_name], settings[:hockey_QA_Token])
 end
 
-lane :demo do
-	ensure_git_branch
-	badge(shield: "#{get_version_number}-#{get_build_number}-0074A0", shield_no_resize: true)
-	gym(scheme: "ChaiOne", clean: true, export_method: "enterprise")
-end
+lane :buildProd do
+	gym(
+		configuration: "Release-ChaiOne",
+		scheme: "ChaiOne",
+		silent: true,
+		clean: true,
+		use_legacy_build_api: true,
+		output_directory: "./build/", # Destination directory. Defaults to current directory.
+		output_name: "#{settings[:project_name]}.ipa"	# specify the name of the .ipa file to generate (including file extension)
+		)
 
-after_all do |lane|
-		
-end
-
-error do |lane, exception|
-	if !suppress_slack
-		slack(slack_url: ENV['slack_url'],
-			message: exception.to_s,
-			success: false,
-			channel: settings[:slack_channel])
-		end
+	# TODO: Need Hockey API_TOKEN for production
+	pushToHockey(settings[:project_name], settings[:hockey_PROD_Token])
 end
