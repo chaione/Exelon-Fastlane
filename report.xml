@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="fastlane.lanes">
+    
+      
+      <testcase classname="fastlane.lanes" name="0: number_of_commits" time="0.020437">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="1: increment_build_number" time="0.619525">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="2: commit_version_bump" time="0.317979">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="3: gym" time="94.063024">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="4: hockey" time="193.511394">
+        
+      </testcase>
+    
+  </testsuite>
+</testsuites>
